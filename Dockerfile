@@ -1,30 +1,25 @@
-# Dockerfile References: https://docs.docker.com/engine/reference/builder/
+### Step 1: Baixar dependenciar e compilar o binario
+FROM golang:1.22-alpine as builder
 
-# Start from golang:1.12-alpine base image
-FROM golang:1.22-alpine
-
-# The latest alpine images don't have some tools like (`git` and `bash`).
-# Adding git, bash and openssh to the image
-RUN apk update && apk upgrade && \
-    apk add --no-cache bash git openssh
-
-# Set the Current Working Directory inside the container
 WORKDIR /app
 
-# Copy go mod and sum files
+# Copia o go.mod e faz o download das dependencias.
 COPY go.mod go.sum ./
-
-# Download all dependancies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
-# Copy the source from the current directory to the Working Directory inside the container
+# Copia o código da aplicação e compila o binario.
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -o main
+################################################
 
-# Build the Go app
-RUN go build -o main .
+### Step 2: Copiar o binario do stage anterior para a imagem final.
+FROM alpine:edge
 
-# Expose port 8080 to the outside world
+# Copia apenas o binario gerado no stage anterior.
+COPY --from=builder /app/main /
+COPY .env /
+
+# Define o ponto de entrada para o container como /meuExecutavel.
+# O binario será executado quando o container for iniciado.
 EXPOSE 8020
-
-# Run the executable
 CMD ["./main"]
