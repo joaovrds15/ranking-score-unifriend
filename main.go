@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"ranking-score-process/middleware"
 	"sort"
 	"strconv"
 
@@ -69,6 +70,8 @@ func initializeDatabaseConnection() {
 func main() {
 	initializeDatabaseConnection()
 	r := gin.Default()
+	r.Use(middleware.BasicTokenMiddleware())
+
 	r.GET("/calculate-result", calculateUserResult)
 
 	r.Run(":8020")

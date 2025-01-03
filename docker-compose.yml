@@ -6,3 +6,9 @@ services:
     ports:
       - "8020:8020"
     restart: unless-stopped
+    networks:
+      - unifriend-api_default
+
+networks:
+  unifriend-api_default:
+    external: true
